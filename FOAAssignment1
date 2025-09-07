@@ -1,0 +1,184 @@
+/*  Program to implement Australian House of Representatives preferential
+    voting and determine election outcomes from vote preference orderings.
+
+    Skeleton program written by Alistair Moffat, ammoffat@unimelb.edu.au,
+    August 2025, with the intention that it be modified by students
+    to add functionality, as required by the assignment specification.
+    All included code is (c) Copyright University of Melbourne, 2025
+
+    Student Authorship Declaration:
+
+    (1) I certify that except for the code provided in the initial skeleton
+    file, the program contained in this submission is completely my own
+    individual work, except where explicitly noted by further comments that
+    provide details otherwise. I understand that work that has been
+    developed by another student, or by me in collaboration with other
+    students, or by non-students as a result of request, solicitation, or
+    payment, may not be submitted for assessment in this subject. I
+    understand that submitting for assessment work developed by or in
+    collaboration with other students or non-students constitutes Academic
+    Misconduct, and may be penalized by mark deductions, or by other
+    penalties determined via the University of Melbourne Academic Honesty
+    Policy, as described at https://academicintegrity.unimelb.edu.au.
+
+    (2) I also certify that I have not provided a copy of this work in either
+    softcopy or hardcopy or any other form to any other student, and nor will
+    I do so until after the marks are released. I understand that providing
+    my work to other students, regardless of my intention or any undertakings
+    made to me by that other student, is also Academic Misconduct.
+
+    (3) I further understand that providing a copy of the assignment
+    specification to any form of code authoring or assignment tutoring
+    service, or drawing the attention of others to such services and code
+    that may have been made available via such a service, may be regarded as
+    Student General Misconduct (interfering with the teaching activities of
+    the University and/or inciting others to commit Academic Misconduct). I
+    understand that an allegation of Student General Misconduct may arise
+    regardless of whether or not I personally make use of such solutions or
+    sought benefit from such actions.
+
+    Signed by: [Hoang Phuc Le 1524189]
+    Dated: [04/09/2025]
+*/
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <ctype.h>
+#include <assert.h>
+#define MAX_CAN 20
+#define MAX_VOTE 999
+
+///////////////////////////////////////////////////////////////////////
+
+int getword(char W[], int limit);
+// add your other function prototypes here
+void stage1(int can_num, char candidate_name[][20], int preference[][MAX_CAN], int vote_num);
+void print_char_array(char A[], int n);
+void print_int_array(int A[], int n);
+void print_double_array(double A[], int n);
+void eliminate(int can_num, int vote_num, int preference[][MAX_CAN]);
+///////////////////////////////////////////////////////////////////////
+
+// main program provides traffic control
+int main(int argc, char *argv[]) {
+    // write your main program here
+
+    char candidate[MAX_CAN][20] = {"Allyx", "Breyn", "Cheng", "Duc", "Ellan"};
+    int voters[][MAX_CAN] = {
+        {1, 4, 2, 3, 5},
+        {3, 4, 2, 1, 5},
+        {1, 2, 4, 3, 5},
+        {4, 1, 2, 5, 3},
+        {4, 3, 1, 2, 5},
+        {2, 3, 5, 1, 4},
+        {2, 3, 1, 5, 4}
+    };
+    int voter_num = sizeof(voters)/sizeof(voters[0]);
+    //stage1(5, candidate, voters, voter_num);
+    eliminate(5, 7, voters);
+    //getword(candidate, 20);
+    //print_array(candidate, 20);
+    // all done, time to go home
+    //printf("tadaa!\n");
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////
+
+// extract a single word out of the standard input, of not
+// more than limit characters, argument array W must be
+// limit+1 characters or bigger.
+// function adapted from Figure 7.13 of Programming, Problem Solving,
+// and Abstraction with C, by Alistair Moffat
+//
+int getword(char W[], int limit) {
+    int c, len = 0;
+
+    /* first, skip over any non alphabetics */
+    while ((c = getchar()) != EOF && !isalpha(c)) {
+        /* do nothing more */
+    }
+
+    if (c == EOF) {
+        return EOF;
+    }
+
+    /* ok, first character of next word has been found */
+    W[len++] = c;
+
+    while (len < limit && (c = getchar()) != EOF && isalpha(c)) {
+        /* another character to be stored */
+        W[len++] = c;
+    }
+
+    /* now close off the string */
+    W[len] = '\0';
+
+    return 0;
+}
+
+///////////////////////////////////////////////////////////////////////
+
+// add your other functions here
+void print_char_array(char A[], int n) {
+    for (int i = 0; i < n; i++) {
+        printf(" %3c", A[i]);
+    }
+    printf("\n");
+}
+void print_int_array(int A[], int n) {
+    for (int i = 0; i < n; i++) {
+        printf(" %3d", A[i]);
+    }
+    printf("\n");
+}
+void print_double_array(double A[], int n) {
+    for (int i = 0; i < n; i++) {
+        printf(" %.1lf", A[i]);
+    }
+    printf("\n");
+}
+
+void stage1(int can_num, char candidate_name[][20], int preference[][MAX_CAN], int vote_num){
+    printf("Stage 1\n");
+    printf("=======\n");
+    printf("read %d candidates and %d votes\n", can_num, vote_num);
+    printf("voter %d preferences...\n", vote_num);
+    int rank[MAX_CAN+1];  
+    for (int i = 0; i < can_num; i++) {
+        int r = preference[vote_num-1][i];
+        rank[r] = i;   
+    }
+
+    for (int i = 1; i <= can_num; i++) {
+        int r = rank[i];
+        printf("    rank%4d: %s\n", i, candidate_name[r]);
+    }
+}
+
+void eliminate(int can_num, int vote_num, int preference[][MAX_CAN]){
+    printf("Stage 2\n");
+    printf("=======\n");
+    int vote_count[can_num];
+    for(int i = 0; i < can_num; i++){
+        vote_count[i] = 0;
+    }
+    
+    for(int v = 0; v < vote_num; v++){
+        for (int c = 0; c < can_num; c++){
+            if(preference[v][c] == 1){
+                vote_count[c]++;
+            }
+        }
+    }  
+    print_int_array(vote_count, can_num);
+    double vote_ratio[can_num];
+    for(int i=0; i < can_num; i++){
+        vote_ratio[i] = ((double)vote_count[i] / vote_num)*100;
+    }
+    print_double_array(vote_ratio, can_num);
+}
+
+
