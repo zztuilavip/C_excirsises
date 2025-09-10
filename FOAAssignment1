@@ -58,7 +58,8 @@ void stage1(int can_num, char candidate_name[][20], int preference[][MAX_CAN], i
 void print_char_array(char A[], int n);
 void print_int_array(int A[], int n);
 void print_double_array(double A[], int n);
-void eliminate(int can_num, int vote_num, int preference[][MAX_CAN]);
+void stage2(int can_num, int vote_num, int preference[][MAX_CAN], char candidate_name[][20]);
+int check_winner(int vote_num,int can_num, char candidate_name[][20], int vote_count[]);
 ///////////////////////////////////////////////////////////////////////
 
 // main program provides traffic control
@@ -75,9 +76,9 @@ int main(int argc, char *argv[]) {
         {2, 3, 5, 1, 4},
         {2, 3, 1, 5, 4}
     };
-    int voter_num = sizeof(voters)/sizeof(voters[0]);
+    //int voter_num = sizeof(voters)/sizeof(voters[0]);
     //stage1(5, candidate, voters, voter_num);
-    eliminate(5, 7, voters);
+    stage2(5, 7, voters, candidate);
     //getword(candidate, 20);
     //print_array(candidate, 20);
     // all done, time to go home
@@ -158,7 +159,7 @@ void stage1(int can_num, char candidate_name[][20], int preference[][MAX_CAN], i
     }
 }
 
-void eliminate(int can_num, int vote_num, int preference[][MAX_CAN]){
+void stage2(int can_num, int vote_num, int preference[][MAX_CAN], char candidate_name[][20]){
     printf("Stage 2\n");
     printf("=======\n");
     int vote_count[can_num];
@@ -172,13 +173,37 @@ void eliminate(int can_num, int vote_num, int preference[][MAX_CAN]){
                 vote_count[c]++;
             }
         }
-    }  
-    print_int_array(vote_count, can_num);
+    }
     double vote_ratio[can_num];
+
     for(int i=0; i < can_num; i++){
         vote_ratio[i] = ((double)vote_count[i] / vote_num)*100;
     }
-    print_double_array(vote_ratio, can_num);
+
+    for(int i = 0; i < can_num; i++){
+        printf("    %-20s:   %d votes, %5.1lf%%\n",  candidate_name[i], vote_count[i], vote_ratio[i]);
+    }
+    int winner = check_winner(vote_num, can_num, candidate_name, vote_count);
+    if(winner != -1){
+        printf("%s is declared elected", candidate_name[winner]);
+    }
+    int vote_index[can_num][vote_num / 2];
+    for(int i = 0; i < can_num; i++){
+        for(int j = 0; j < vote_num / 2; j++){
+            vote_index[i][j] = -1;
+        }    
+    }
+    
+}
+
+int check_winner(int vote_num,int can_num, char candidate_name[][20], int vote_count[]){
+    double major_count = (double)vote_num / 2;
+    for(int i = can_num-1; i >= 0; i--){
+        if((vote_count[i]) >= major_count){
+            return i;
+        }
+    }
+    return -1;
 }
 
 
