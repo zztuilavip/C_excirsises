@@ -66,6 +66,7 @@ int check_winner(int vote_num,int can_num, char candidate_name[][20], int vote_c
 // main program provides traffic control
 int main(int argc, char *argv[]) {
     // write your main program here
+    // algorithms are fun
     // read candidate and voters info from input file
     int can_num;
     scanf("%d", &can_num);
@@ -83,13 +84,15 @@ int main(int argc, char *argv[]) {
         }
         i++;
     }
-    int voters_num = i;  
+    int voters_num = i;
+    printf("\n");
     stage1(can_num, candidate, votes_preference, voters_num);
     //stage2(can_num, voters_num, votes_preference, candidate);
     //getword(candidate, 20);
     //print_char_array(candidate, 20);
     // all done, time to go home
-    printf("tadaa!\n");
+    printf("tadaa!");
+    printf("\n");
     return 0;
 }
 
@@ -150,7 +153,8 @@ void print_double_array(double A[], int n) {
     printf("\n");
 }
 
-void stage1(int can_num, char candidate_name[][MAX_CHAR], int preference[][MAX_CAN], int vote_num){
+void stage1(int can_num, char candidate_name[][MAX_CHAR],
+    int preference[][MAX_CAN], int vote_num){
     printf("Stage 1\n");
     printf("=======\n");
     printf("read %d candidates and %d votes\n", can_num, vote_num);
@@ -163,11 +167,12 @@ void stage1(int can_num, char candidate_name[][MAX_CHAR], int preference[][MAX_C
 
     for (int i = 1; i <= can_num; i++) {
         int r = rank[i];
-        printf("    rank%4d: %s\n", i, candidate_name[r]);
+        printf("    rank%3d: %s\n", i, candidate_name[r]);
     }
 }
 
-void stage2(int can_num, int vote_num, int preference[][MAX_CAN], char candidate_name[][20]){
+void stage2(int can_num, int vote_num,
+    int preference[][MAX_CAN], char candidate_name[][20]){
     printf("Stage 2\n");
     printf("=======\n");
     int vote_count[can_num];
@@ -189,7 +194,8 @@ void stage2(int can_num, int vote_num, int preference[][MAX_CAN], char candidate
     }
 
     for(int i = 0; i < can_num; i++){
-        printf("    %-20s:   %d votes, %5.1lf%%\n",  candidate_name[i], vote_count[i], vote_ratio[i]);
+        printf("    %-20s:   %d votes, %5.1lf%%\n", 
+        candidate_name[i], vote_count[i], vote_ratio[i]);
     }
     int winner = check_winner(vote_num, can_num, candidate_name, vote_count);
     if(winner != -1){
@@ -203,7 +209,8 @@ void stage2(int can_num, int vote_num, int preference[][MAX_CAN], char candidate
     }  
 }
 
-int check_winner(int vote_num,int can_num, char candidate_name[][20], int vote_count[]){
+int check_winner(int vote_num,int can_num,
+    char candidate_name[][20], int vote_count[]){
     double major_count = (double)vote_num / 2;
     for(int i = can_num-1; i >= 0; i--){
         if((vote_count[i]) >= major_count){
