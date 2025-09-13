@@ -59,8 +59,11 @@ void stage1(int can_num, char candidate_name[][20], int preference[][MAX_CAN], i
 void print_char_array(char A[], int n);
 void print_int_array(int A[], int n);
 void print_double_array(double A[], int n);
-void stage2(int can_num, int vote_num, int preference[][MAX_CAN], char candidate_name[][20]);
-int check_winner(int vote_num,int can_num, char candidate_name[][20], int vote_count[]);
+int stage2(int can_num, int vote_num, int preference[][MAX_CAN], char candidate_name[][20]);
+int check_winner(int vote_num,int can_num, char candidate_name[][20], int vote_count[], int active_candidate[]);
+int find_eliminate(int vote_count[], int active_candidate[], int can_num);
+void redistribute(int preference[][MAX_CAN], int vote_count[], int active_candidates[],
+                int eliminate_candidate, int vote_num, int can_num);
 ///////////////////////////////////////////////////////////////////////
 
 // main program provides traffic control
@@ -86,8 +89,8 @@ int main(int argc, char *argv[]) {
     }
     int voters_num = i;
     printf("\n");
-    stage1(can_num, candidate, votes_preference, voters_num);
-    //stage2(can_num, voters_num, votes_preference, candidate);
+    //stage1(can_num, candidate, votes_preference, voters_num);
+    stage2(can_num, voters_num, votes_preference, candidate);
     //getword(candidate, 20);
     //print_char_array(candidate, 20);
     // all done, time to go home
@@ -171,11 +174,18 @@ void stage1(int can_num, char candidate_name[][MAX_CHAR],
     }
 }
 
-void stage2(int can_num, int vote_num,
+int stage2(int can_num, int vote_num,
     int preference[][MAX_CAN], char candidate_name[][20]){
     printf("Stage 2\n");
     printf("=======\n");
     int vote_count[can_num];
+    int active_candidate[can_num];
+    
+    //set active status for every candidates
+    for(int i = 0; i < can_num; i++){
+        active_candidate[i] = 1;
+    }
+
     for(int i = 0; i < can_num; i++){
         vote_count[i] = 0;
     }
@@ -184,38 +194,103 @@ void stage2(int can_num, int vote_num,
         for (int c = 0; c < can_num; c++){
             if(preference[v][c] == 1){
                 vote_count[c]++;
+                break;
             }
         }
     }
-    double vote_ratio[can_num];
+    int round = 1;
+    while(1){
+        printf("round %d...\n", round);
 
-    for(int i=0; i < can_num; i++){
-        vote_ratio[i] = ((double)vote_count[i] / vote_num)*100;
-    }
+        for(int i = 0; i < can_num; i++){
+            if(active_candidate[i]){
+                double vote_ratio = 100.0*vote_count[i]/vote_num;
+                printf("    %-20s:   %d votes, %5.1lf%%\n", 
+                candidate_name[i], vote_count[i], vote_ratio);
+            }
+        }
+        printf("    ----\n");
+        // check if there is a winner
+        int winner = check_winner(vote_num, can_num, candidate_name, vote_count, active_candidate);
+        if(winner != -1){
+            printf("    %s is declared elected\n", candidate_name[winner]);
+            return winner;
+        }
+        
+        // find suitable candidate to eliminate
+        int eliminated = find_eliminate(vote_count, active_candidate, can_num);
+        printf("    %s is eliminated and votes distributed\n\n", candidate_name[eliminated]);
 
-    for(int i = 0; i < can_num; i++){
-        printf("    %-20s:   %d votes, %5.1lf%%\n", 
-        candidate_name[i], vote_count[i], vote_ratio[i]);
-    }
-    int winner = check_winner(vote_num, can_num, candidate_name, vote_count);
-    if(winner != -1){
-        printf("%s is declared elected\n", candidate_name[winner]);
-    }
-    int vote_index[can_num][vote_num / 2];
-    for(int i = 0; i < can_num; i++){
-        for(int j = 0; j < vote_num / 2; j++){
-            vote_index[i][j] = -1;
-        }    
-    }  
+        // redistribute votes after eliminating
+        redistribute(preference, vote_count, active_candidate, eliminated, vote_num, can_num);
+
+        // set value for eliminated candidate 
+        active_candidate[eliminated] = 0;
+
+        round++;
+        //printf("HELLO%d", round);
+    }    
+    
 }
 
 int check_winner(int vote_num,int can_num,
-    char candidate_name[][20], int vote_count[]){
-    double major_count = (double)vote_num / 2;
-    for(int i = can_num-1; i >= 0; i--){
-        if((vote_count[i]) >= major_count){
+    char candidate_name[][20], int vote_count[], int active_candidate[]){
+    int major_count = vote_num / 2;
+    for(int i = 0; i < can_num; i++){
+        if(active_candidate[i] && vote_count[i] > major_count){
             return i;
         }
     }
     return -1;
+}
+
+int find_eliminate(int vote_count[], int active_candidate[], int can_num){
+    int min_votes = MAX_VOTE + 1;
+    int eliminate_candidate = -1;
+
+    for(int i = 0; i < can_num; i++){
+        if(active_candidate[i] && vote_count[i] < min_votes){
+            min_votes = vote_count[i];
+            eliminate_candidate = i;
+        }
+    }
+    return eliminate_candidate;
+}
+
+void redistribute(int preference[][MAX_CAN], int vote_count[], int active_candidate[],
+                int eliminate_candidate, int vote_num, int can_num){
+    
+    for(int v = 0; v < vote_num; v++){
+        int current_choice = -1;
+        int best_fit = can_num + 1;
+
+        for(int c = 0; c < can_num; c++){
+            if(active_candidate[c] && preference[v][c] < best_fit){
+                best_fit = preference[v][c];
+                current_choice = c;
+            }
+        }
+
+        if(current_choice == eliminate_candidate){
+            vote_count[eliminate_candidate]--;
+
+            active_candidate[eliminate_candidate] = 0;
+
+            int new_choice = -1;
+            int new_best = can_num + 1;
+
+            for(int c = 0; c < can_num; c++){
+                if(active_candidate[c] && preference[v][c] < new_best){
+                    new_best = preference[v][c];
+                    new_choice = c;
+                }
+            }
+            if(new_choice != -1){
+                vote_count[new_choice]++;
+            }
+
+            active_candidate[eliminate_candidate] = 0;
+        }
+    }     
+    
 }
