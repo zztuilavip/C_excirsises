@@ -64,6 +64,12 @@ int check_winner(int vote_num,int can_num, char candidate_name[][20], int vote_c
 int find_eliminate(int vote_count[], int active_candidate[], int can_num);
 void redistribute(int preference[][MAX_CAN], int vote_count[], int active_candidates[],
                 int eliminate_candidate, int vote_num, int can_num);
+int stage3(int can_num, int vote_num,
+    int preference[][MAX_CAN], char candidate_name[][20]);
+void sort_active_candidates(int sorted_indices[], int active_candidates[], int can_num, 
+                           int vote_count[], char candidate_name[][20]);
+    
+
 ///////////////////////////////////////////////////////////////////////
 
 // main program provides traffic control
@@ -89,8 +95,13 @@ int main(int argc, char *argv[]) {
     }
     int voters_num = i;
     printf("\n");
-    //stage1(can_num, candidate, votes_preference, voters_num);
+    stage1(can_num, candidate, votes_preference, voters_num);
+    printf("\n");
     stage2(can_num, voters_num, votes_preference, candidate);
+    printf("\n");
+    printf("\n");
+    stage3(can_num, voters_num, votes_preference, candidate);
+    printf("\n");
     //getword(candidate, 20);
     //print_char_array(candidate, 20);
     // all done, time to go home
@@ -289,8 +300,116 @@ void redistribute(int preference[][MAX_CAN], int vote_count[], int active_candid
                 vote_count[new_choice]++;
             }
 
-            active_candidate[eliminate_candidate] = 0;
+            active_candidate[eliminate_candidate] = 1;
         }
     }     
     
+}
+
+int stage3(int can_num, int vote_num,
+    int preference[][MAX_CAN], char candidate_name[][20]){
+    printf("Stage 3\n");
+    printf("=======\n");
+    int vote_count[can_num];
+    int active_candidate[can_num];
+    
+
+    
+    //set active status for every candidates
+    for(int i = 0; i < can_num; i++){
+        active_candidate[i] = 1;
+    }
+
+    for(int i = 0; i < can_num; i++){
+        vote_count[i] = 0;
+    }
+    
+    for(int v = 0; v < vote_num; v++){
+        for (int c = 0; c < can_num; c++){
+            if(preference[v][c] == 1){
+                vote_count[c]++;
+                break;
+            }
+        }
+    }
+    int round = 1;
+    while(1){
+        int sorted_indices[can_num];        
+        sort_active_candidates(sorted_indices, active_candidate, can_num, vote_count, candidate_name);
+        printf("round %d...\n", round);
+        int active_count = 0;
+        for(int i = 0; i < can_num; i++){
+            if(active_candidate[i]){
+                active_count++;
+            }
+        }
+
+        for(int i = 0; i < active_count; i++){
+            int index = sorted_indices[i];
+            double vote_ratio = 100.0*vote_count[index]/vote_num;
+            printf("    %-20s:   %d votes, %5.1lf%%\n", 
+            candidate_name[index], vote_count[index], vote_ratio);   
+        }
+        printf("    ----\n");
+
+        // check if there is a winner
+        int winner = check_winner(vote_num, can_num, candidate_name, vote_count, active_candidate);
+        if(winner != -1){
+            printf("    %s is declared elected\n", candidate_name[winner]);
+            return winner;
+        }
+        
+        // find suitable candidate to eliminate
+        int eliminated = find_eliminate(vote_count, active_candidate, can_num);
+        printf("    %s is eliminated and votes distributed\n\n", candidate_name[eliminated]);
+
+        // redistribute votes after eliminating
+        redistribute(preference, vote_count, active_candidate, eliminated, vote_num, can_num);
+
+        // set value for eliminated candidate 
+        active_candidate[eliminated] = 0;
+
+        round++;
+        //printf("HELLO%d", round);
+    }
+}    
+    
+
+void sort_active_candidates(int sorted_indices[], int active_candidates[], int can_num, 
+                           int vote_count[], char candidate_name[][20]){
+    int count = 0;
+    
+    // Lấy danh sách các ứng viên còn hoạt động
+    for (int i = 0; i < can_num; i++) {
+        if (active_candidates[i]) {
+            sorted_indices[count++] = i;
+        }
+    }
+    
+    // Insertion sort: sắp xếp theo số phiếu giảm dần, nếu bằng thì theo alphabet
+    for (int i = 1; i < count; i++) {
+        int key = sorted_indices[i];
+        int j = i - 1;
+        
+        // Di chuyển các phần tử lớn hơn key về phía sau
+        while (j >= 0) {
+            int current_idx = sorted_indices[j];
+            
+            // Kiểm tra điều kiện sắp xếp:
+            // 1. Số phiếu của current_idx < số phiếu của key (cần di chuyển vì muốn giảm dần)
+            // 2. Hoặc số phiếu bằng nhau nhưng tên current_idx > tên key (cần di chuyển vì muốn alphabet)
+            if (vote_count[current_idx] < vote_count[key] || 
+                (vote_count[current_idx] == vote_count[key] && 
+                strcmp(candidate_name[current_idx], candidate_name[key]) > 0)) {
+                sorted_indices[j + 1] = sorted_indices[j];
+                j--;
+            } 
+            else {
+                break; // Đã tìm được vị trí phù hợp
+            }
+        }
+        
+        // Chèn key vào vị trí đúng
+        sorted_indices[j + 1] = key;
+    }
 }
