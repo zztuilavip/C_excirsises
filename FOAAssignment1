@@ -1,3 +1,4 @@
+
 /*  Program to implement Australian House of Representatives preferential
     voting and determine election outcomes from vote preference orderings.
 
@@ -68,6 +69,7 @@ int stage3(int can_num, int vote_num,
     int preference[][MAX_CAN], char candidate_name[][20]);
 void sort_active_candidates(int sorted_indices[], int active_candidates[], int can_num, 
                            int vote_count[], char candidate_name[][20]);
+int find_vote_owner(int vote_index, int preference[][MAX_CAN], int active_candidate[], int can_num);                           
     
 
 ///////////////////////////////////////////////////////////////////////
@@ -267,35 +269,30 @@ int find_eliminate(int vote_count[], int active_candidate[], int can_num){
     }
     return eliminate_candidate;
 }
+int find_vote_owner(int vote_index, int preference[][MAX_CAN], int active_candidate[], int can_num){
+    int current_choice = -1;
+    int best_preference = can_num + 1;
+    for(int c = 0; c < can_num; c++){
+        if(active_candidate[c] && preference[vote_index][c] < best_preference){
+            best_preference = preference[vote_index][c];
+            current_choice = c;
+        }
+    }
+    return current_choice;
+}
 
 void redistribute(int preference[][MAX_CAN], int vote_count[], int active_candidate[],
                 int eliminate_candidate, int vote_num, int can_num){
     
     for(int v = 0; v < vote_num; v++){
-        int current_choice = -1;
-        int best_fit = can_num + 1;
-
-        for(int c = 0; c < can_num; c++){
-            if(active_candidate[c] && preference[v][c] < best_fit){
-                best_fit = preference[v][c];
-                current_choice = c;
-            }
-        }
+        int current_choice = find_vote_owner(v, preference, active_candidate, can_num);
 
         if(current_choice == eliminate_candidate){
             vote_count[eliminate_candidate]--;
 
             active_candidate[eliminate_candidate] = 0;
 
-            int new_choice = -1;
-            int new_best = can_num + 1;
-
-            for(int c = 0; c < can_num; c++){
-                if(active_candidate[c] && preference[v][c] < new_best){
-                    new_best = preference[v][c];
-                    new_choice = c;
-                }
-            }
+            int new_choice = find_vote_owner(v, preference, active_candidate, can_num);
             if(new_choice != -1){
                 vote_count[new_choice]++;
             }
@@ -303,8 +300,8 @@ void redistribute(int preference[][MAX_CAN], int vote_count[], int active_candid
             active_candidate[eliminate_candidate] = 1;
         }
     }     
-    
 }
+
 
 int stage3(int can_num, int vote_num,
     int preference[][MAX_CAN], char candidate_name[][20]){
