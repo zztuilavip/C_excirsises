@@ -1,4 +1,3 @@
-
 /*  Program to implement Australian House of Representatives preferential
     voting and determine election outcomes from vote preference orderings.
 
@@ -54,13 +53,9 @@
 
 ///////////////////////////////////////////////////////////////////////
 
-int getword(char W[], int limit);
 // add your other function prototypes here
 void stage1(int can_num, char candidate_name[][20],
- int preference[][MAX_CAN], int vote_num);
-void print_char_array(char A[], int n);
-void print_int_array(int A[], int n);
-void print_double_array(double A[], int n);
+    int preference[][MAX_CAN], int vote_num);
 int stage2(int can_num, int vote_num, int preference[][MAX_CAN],
     char candidate_name[][20]);
 int check_winner(int vote_num,int can_num, char candidate_name[][20],
@@ -82,6 +77,7 @@ int find_vote_owner(int vote_index, int preference[][MAX_CAN],
 int main(int argc, char *argv[]) {
     // write your main program here
     // algorithms are fun
+
     // read candidate and voters info from input file
     int can_num;
     scanf("%d", &can_num);
@@ -99,7 +95,11 @@ int main(int argc, char *argv[]) {
         }
         i++;
     }
+
+    // determine the number of voters
     int voters_num = i;
+
+    // printing the outputs of programs
     printf("\n");
     stage1(can_num, candidate, votes_preference, voters_num);
     printf("\n");
@@ -108,8 +108,6 @@ int main(int argc, char *argv[]) {
     printf("\n");
     stage3(can_num, voters_num, votes_preference, candidate);
     printf("\n");
-    //getword(candidate, 20);
-    //print_char_array(candidate, 20);
     // all done, time to go home
     printf("tadaa!\n");
 
@@ -119,54 +117,27 @@ int main(int argc, char *argv[]) {
 
 ///////////////////////////////////////////////////////////////////////
 
-// extract a single word out of the standard input, of not
-// more than limit characters, argument array W must be
-// limit+1 characters or bigger.
-// function adapted from Figure 7.13 of Programming, Problem Solving,
-// and Abstraction with C, by Alistair Moffat
-//
-int getword(char W[], int limit) {
-    int c, len = 0;
-
-    /* first, skip over any non alphabetics */
-    while ((c = getchar()) != EOF && !isalpha(c)) {
-        /* do nothing more */
-    }
-
-    if (c == EOF) {
-        return EOF;
-    }
-
-    /* ok, first character of next word has been found */
-    W[len++] = c;
-
-    while (len < limit && (c = getchar()) != EOF && isalpha(c)) {
-        /* another character to be stored */
-        W[len++] = c;
-    }
-
-    /* now close off the string */
-    W[len] = '\0';
-
-    return 0;
-}
 
 ///////////////////////////////////////////////////////////////////////
 
 // add your other functions here
 void stage1(int can_num, char candidate_name[][MAX_CHAR],
     int preference[][MAX_CAN], int vote_num){
+
+    // print the layout for stage 1
     printf("Stage 1\n");
     printf("=======\n");
     printf("read %d candidates and %d votes\n", can_num, vote_num);
     printf("voter %d preferences...\n", vote_num);
     int rank[MAX_CAN+1];  
 
+    // rank maps the number to candidate index
     for (int i = 0; i < can_num; i++) {
         int r = preference[vote_num-1][i];
         rank[r] = i;   
     }
 
+    // print out from rank 1 to last 
     for (int i = 1; i <= can_num; i++) {
         int r = rank[i];
         printf("    rank%3d: %s\n", i, candidate_name[r]);
@@ -175,6 +146,8 @@ void stage1(int can_num, char candidate_name[][MAX_CHAR],
 
 int stage2(int can_num, int vote_num,
     int preference[][MAX_CAN], char candidate_name[][20]){
+
+    // print stage 2 layout
     printf("Stage 2\n");
     printf("=======\n");
     int vote_count[can_num];
@@ -185,10 +158,12 @@ int stage2(int can_num, int vote_num,
         active_candidate[i] = 1;
     }
 
+    // count votes per candidate
     for(int i = 0; i < can_num; i++){
         vote_count[i] = 0;
     }
-    
+
+    // count votes based on first preference
     for(int v = 0; v < vote_num; v++){
         for (int c = 0; c < can_num; c++){
             if(preference[v][c] == 1){
@@ -197,8 +172,11 @@ int stage2(int can_num, int vote_num,
             }
         }
     }
+
+    // iterates logic to complete all the rounds needed
     int round = 1;
     while(1){
+        // print the layout for stage 2
         printf("round %d...\n", round);
 
         for(int i = 0; i < can_num; i++){
@@ -209,6 +187,7 @@ int stage2(int can_num, int vote_num,
             }
         }
         printf("    ----\n");
+
         // check if there is a winner
         int winner = check_winner(vote_num, can_num,
             candidate_name, vote_count, active_candidate);
@@ -236,7 +215,10 @@ int stage2(int can_num, int vote_num,
 // check if candidate has major votes 
 int check_winner(int vote_num,int can_num,
     char candidate_name[][20], int vote_count[], int active_candidate[]){
+
     int major_count = vote_num / 2;
+
+    // iterate for all candidates
     for(int i = 0; i < can_num; i++){
         if(active_candidate[i] && vote_count[i] > major_count){
             return i;
@@ -250,6 +232,8 @@ int find_eliminate(int vote_count[], int active_candidate[], int can_num){
     int min_votes = MAX_VOTE + 1;
     int eliminate_candidate = -1;
 
+    // update min_votes and eliminate_candidate if their votes
+    // are lower
     for(int i = 0; i < can_num; i++){
         if(active_candidate[i] && vote_count[i] < min_votes){
             min_votes = vote_count[i];
@@ -258,11 +242,15 @@ int find_eliminate(int vote_count[], int active_candidate[], int can_num){
     }
     return eliminate_candidate;
 }
-// find the index of the candidate 
+
+// for a voter, find highest rank active candidate
 int find_vote_owner(int vote_index, int preference[][MAX_CAN],
     int active_candidate[], int can_num){
+
     int current_choice = -1;
     int best_preference = can_num + 1;
+
+    // check preference rank of active candidate
     for(int c = 0; c < can_num; c++){
         if(active_candidate[c] && preference[vote_index][c] < best_preference){
             best_preference = preference[vote_index][c];
@@ -272,13 +260,19 @@ int find_vote_owner(int vote_index, int preference[][MAX_CAN],
     return current_choice;
 }
 
+// distributes votes after eliminating a candidate
 void redistribute(int preference[][MAX_CAN], int vote_count[],
     int active_candidate[],int eliminate_candidate, int vote_num, int can_num){
     
+    // loop through candidates
     for(int v = 0; v < vote_num; v++){
         int current_choice = 
             find_vote_owner(v, preference, active_candidate, can_num);
-
+        
+        // if current candidate is eliminated
+        // 1. decrease vote for eliminate candidate
+        // 2. finds next preferred candidate and 
+        // increment vote count 
         if(current_choice == eliminate_candidate){
             vote_count[eliminate_candidate]--;
 
@@ -299,12 +293,12 @@ void redistribute(int preference[][MAX_CAN], int vote_count[],
 
 int stage3(int can_num, int vote_num,
     int preference[][MAX_CAN], char candidate_name[][20]){
+
+    // print the layout for stage 3   
     printf("Stage 3\n");
     printf("=======\n");
     int vote_count[can_num];
     int active_candidate[can_num];
-    
-
     
     //set active status for every candidates
     for(int i = 0; i < can_num; i++){
@@ -323,9 +317,13 @@ int stage3(int can_num, int vote_num,
             }
         }
     }
+
+    // iterates logic to complete all the rounds needed
     int round = 1;
     while(1){
-        int sorted_indices[can_num];        
+
+        // using insertion sort
+        int sorted_indices[can_num];      
         sort_active_candidates(sorted_indices, active_candidate,
             can_num, vote_count, candidate_name);
         printf("round %d...\n", round);
@@ -365,11 +363,10 @@ int stage3(int can_num, int vote_num,
         active_candidate[eliminated] = 0;
 
         round++;
-        //printf("HELLO%d", round);
     }
 }    
     
-
+// function to apply insertion sort
 void sort_active_candidates(int sorted_indices[], int active_candidates[],
     int can_num, int vote_count[], char candidate_name[][20]){
     int count = 0;
@@ -381,7 +378,7 @@ void sort_active_candidates(int sorted_indices[], int active_candidates[],
         }
     }
     
-    // Insertion sort
+    // Insertion sort algorithm
     for (int i = 1; i < count; i++) {
         int key = sorted_indices[i];
         int j = i - 1;
