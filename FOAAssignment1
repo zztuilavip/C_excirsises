@@ -56,20 +56,24 @@
 
 int getword(char W[], int limit);
 // add your other function prototypes here
-void stage1(int can_num, char candidate_name[][20], int preference[][MAX_CAN], int vote_num);
+void stage1(int can_num, char candidate_name[][20],
+ int preference[][MAX_CAN], int vote_num);
 void print_char_array(char A[], int n);
 void print_int_array(int A[], int n);
 void print_double_array(double A[], int n);
-int stage2(int can_num, int vote_num, int preference[][MAX_CAN], char candidate_name[][20]);
-int check_winner(int vote_num,int can_num, char candidate_name[][20], int vote_count[], int active_candidate[]);
+int stage2(int can_num, int vote_num, int preference[][MAX_CAN],
+    char candidate_name[][20]);
+int check_winner(int vote_num,int can_num, char candidate_name[][20],
+    int vote_count[], int active_candidate[]);
 int find_eliminate(int vote_count[], int active_candidate[], int can_num);
-void redistribute(int preference[][MAX_CAN], int vote_count[], int active_candidates[],
-                int eliminate_candidate, int vote_num, int can_num);
+void redistribute(int preference[][MAX_CAN], int vote_count[],
+    int active_candidates[],int eliminate_candidate, int vote_num, int can_num);
 int stage3(int can_num, int vote_num,
     int preference[][MAX_CAN], char candidate_name[][20]);
-void sort_active_candidates(int sorted_indices[], int active_candidates[], int can_num, 
-                           int vote_count[], char candidate_name[][20]);
-int find_vote_owner(int vote_index, int preference[][MAX_CAN], int active_candidate[], int can_num);                           
+void sort_active_candidates(int sorted_indices[], int active_candidates[],
+    int can_num, int vote_count[], char candidate_name[][20]);
+int find_vote_owner(int vote_index, int preference[][MAX_CAN],
+    int active_candidate[], int can_num);                           
     
 
 ///////////////////////////////////////////////////////////////////////
@@ -107,8 +111,8 @@ int main(int argc, char *argv[]) {
     //getword(candidate, 20);
     //print_char_array(candidate, 20);
     // all done, time to go home
-    printf("tadaa!");
-    printf("\n");
+    printf("tadaa!\n");
+
     return 0;
 }
 
@@ -150,25 +154,6 @@ int getword(char W[], int limit) {
 ///////////////////////////////////////////////////////////////////////
 
 // add your other functions here
-void print_char_array(char A[], int n) {
-    for (int i = 0; i < n; i++) {
-        printf(" %3c", A[i]);
-    }
-    printf("\n");
-}
-void print_int_array(int A[], int n) {
-    for (int i = 0; i < n; i++) {
-        printf(" %3d", A[i]);
-    }
-    printf("\n");
-}
-void print_double_array(double A[], int n) {
-    for (int i = 0; i < n; i++) {
-        printf(" %.1lf", A[i]);
-    }
-    printf("\n");
-}
-
 void stage1(int can_num, char candidate_name[][MAX_CHAR],
     int preference[][MAX_CAN], int vote_num){
     printf("Stage 1\n");
@@ -176,6 +161,7 @@ void stage1(int can_num, char candidate_name[][MAX_CHAR],
     printf("read %d candidates and %d votes\n", can_num, vote_num);
     printf("voter %d preferences...\n", vote_num);
     int rank[MAX_CAN+1];  
+
     for (int i = 0; i < can_num; i++) {
         int r = preference[vote_num-1][i];
         rank[r] = i;   
@@ -218,13 +204,14 @@ int stage2(int can_num, int vote_num,
         for(int i = 0; i < can_num; i++){
             if(active_candidate[i]){
                 double vote_ratio = 100.0*vote_count[i]/vote_num;
-                printf("    %-20s:   %d votes, %5.1lf%%\n", 
+                printf("    %-20s: %3d votes, %5.1lf%%\n", 
                 candidate_name[i], vote_count[i], vote_ratio);
             }
         }
         printf("    ----\n");
         // check if there is a winner
-        int winner = check_winner(vote_num, can_num, candidate_name, vote_count, active_candidate);
+        int winner = check_winner(vote_num, can_num,
+            candidate_name, vote_count, active_candidate);
         if(winner != -1){
             printf("    %s is declared elected\n", candidate_name[winner]);
             return winner;
@@ -232,20 +219,21 @@ int stage2(int can_num, int vote_num,
         
         // find suitable candidate to eliminate
         int eliminated = find_eliminate(vote_count, active_candidate, can_num);
-        printf("    %s is eliminated and votes distributed\n\n", candidate_name[eliminated]);
+        printf("    %s is eliminated and votes distributed\n\n",
+            candidate_name[eliminated]);
 
         // redistribute votes after eliminating
-        redistribute(preference, vote_count, active_candidate, eliminated, vote_num, can_num);
+        redistribute(preference, vote_count, active_candidate,
+             eliminated, vote_num, can_num);
 
         // set value for eliminated candidate 
         active_candidate[eliminated] = 0;
 
         round++;
-        //printf("HELLO%d", round);
     }    
     
 }
-
+// check if candidate has major votes 
 int check_winner(int vote_num,int can_num,
     char candidate_name[][20], int vote_count[], int active_candidate[]){
     int major_count = vote_num / 2;
@@ -257,6 +245,7 @@ int check_winner(int vote_num,int can_num,
     return -1;
 }
 
+// find the index of the eliminated candidate
 int find_eliminate(int vote_count[], int active_candidate[], int can_num){
     int min_votes = MAX_VOTE + 1;
     int eliminate_candidate = -1;
@@ -269,7 +258,9 @@ int find_eliminate(int vote_count[], int active_candidate[], int can_num){
     }
     return eliminate_candidate;
 }
-int find_vote_owner(int vote_index, int preference[][MAX_CAN], int active_candidate[], int can_num){
+// find the index of the candidate 
+int find_vote_owner(int vote_index, int preference[][MAX_CAN],
+    int active_candidate[], int can_num){
     int current_choice = -1;
     int best_preference = can_num + 1;
     for(int c = 0; c < can_num; c++){
@@ -281,18 +272,21 @@ int find_vote_owner(int vote_index, int preference[][MAX_CAN], int active_candid
     return current_choice;
 }
 
-void redistribute(int preference[][MAX_CAN], int vote_count[], int active_candidate[],
-                int eliminate_candidate, int vote_num, int can_num){
+void redistribute(int preference[][MAX_CAN], int vote_count[],
+    int active_candidate[],int eliminate_candidate, int vote_num, int can_num){
     
     for(int v = 0; v < vote_num; v++){
-        int current_choice = find_vote_owner(v, preference, active_candidate, can_num);
+        int current_choice = 
+            find_vote_owner(v, preference, active_candidate, can_num);
 
         if(current_choice == eliminate_candidate){
             vote_count[eliminate_candidate]--;
 
             active_candidate[eliminate_candidate] = 0;
 
-            int new_choice = find_vote_owner(v, preference, active_candidate, can_num);
+            int new_choice = 
+                find_vote_owner(v, preference, active_candidate, can_num);
+
             if(new_choice != -1){
                 vote_count[new_choice]++;
             }
@@ -332,7 +326,8 @@ int stage3(int can_num, int vote_num,
     int round = 1;
     while(1){
         int sorted_indices[can_num];        
-        sort_active_candidates(sorted_indices, active_candidate, can_num, vote_count, candidate_name);
+        sort_active_candidates(sorted_indices, active_candidate,
+            can_num, vote_count, candidate_name);
         printf("round %d...\n", round);
         int active_count = 0;
         for(int i = 0; i < can_num; i++){
@@ -344,13 +339,14 @@ int stage3(int can_num, int vote_num,
         for(int i = 0; i < active_count; i++){
             int index = sorted_indices[i];
             double vote_ratio = 100.0*vote_count[index]/vote_num;
-            printf("    %-20s:   %d votes, %5.1lf%%\n", 
+            printf("    %-20s: %3d votes, %5.1lf%%\n", 
             candidate_name[index], vote_count[index], vote_ratio);   
         }
         printf("    ----\n");
 
         // check if there is a winner
-        int winner = check_winner(vote_num, can_num, candidate_name, vote_count, active_candidate);
+        int winner = check_winner(vote_num, can_num, candidate_name,
+            vote_count, active_candidate);
         if(winner != -1){
             printf("    %s is declared elected\n", candidate_name[winner]);
             return winner;
@@ -358,10 +354,12 @@ int stage3(int can_num, int vote_num,
         
         // find suitable candidate to eliminate
         int eliminated = find_eliminate(vote_count, active_candidate, can_num);
-        printf("    %s is eliminated and votes distributed\n\n", candidate_name[eliminated]);
+        printf("    %s is eliminated and votes distributed\n\n",
+            candidate_name[eliminated]);
 
         // redistribute votes after eliminating
-        redistribute(preference, vote_count, active_candidate, eliminated, vote_num, can_num);
+        redistribute(preference, vote_count, active_candidate,
+            eliminated, vote_num, can_num);
 
         // set value for eliminated candidate 
         active_candidate[eliminated] = 0;
@@ -372,29 +370,29 @@ int stage3(int can_num, int vote_num,
 }    
     
 
-void sort_active_candidates(int sorted_indices[], int active_candidates[], int can_num, 
-                           int vote_count[], char candidate_name[][20]){
+void sort_active_candidates(int sorted_indices[], int active_candidates[],
+    int can_num, int vote_count[], char candidate_name[][20]){
     int count = 0;
     
-    // Lấy danh sách các ứng viên còn hoạt động
+    // get indices of active candidates
     for (int i = 0; i < can_num; i++) {
         if (active_candidates[i]) {
             sorted_indices[count++] = i;
         }
     }
     
-    // Insertion sort: sắp xếp theo số phiếu giảm dần, nếu bằng thì theo alphabet
+    // Insertion sort
     for (int i = 1; i < count; i++) {
         int key = sorted_indices[i];
         int j = i - 1;
-        
-        // Di chuyển các phần tử lớn hơn key về phía sau
+
+        // Move larger elements back
         while (j >= 0) {
             int current_idx = sorted_indices[j];
             
-            // Kiểm tra điều kiện sắp xếp:
-            // 1. Số phiếu của current_idx < số phiếu của key (cần di chuyển vì muốn giảm dần)
-            // 2. Hoặc số phiếu bằng nhau nhưng tên current_idx > tên key (cần di chuyển vì muốn alphabet)
+            // Check sorting conditions
+            // 1. Votes of current_idx < Votes of key (descending)
+            // 2. Equal votes but name of current_idx > key (alphabetical order)
             if (vote_count[current_idx] < vote_count[key] || 
                 (vote_count[current_idx] == vote_count[key] && 
                 strcmp(candidate_name[current_idx], candidate_name[key]) > 0)) {
@@ -402,11 +400,11 @@ void sort_active_candidates(int sorted_indices[], int active_candidates[], int c
                 j--;
             } 
             else {
-                break; // Đã tìm được vị trí phù hợp
+                break; // Found suitable place
             }
         }
         
-        // Chèn key vào vị trí đúng
+        // get key into correct place
         sorted_indices[j + 1] = key;
     }
 }
